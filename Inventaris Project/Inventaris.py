@@ -2,6 +2,7 @@ import pyinputplus as pypi
 import copy
 from datetime import datetime
 import mysql.connector
+import sys
 
 koneksi = mysql.connector.connect(
     host="localhost",
@@ -106,7 +107,7 @@ def sortingExpired():
         date = datetime.strptime(date, "%Y/%m/%d").date()
         difference = date - today
         if difference.days < 1:
-            return "expired"
+            return "| EXPIRED |"
 
         selisihHari = difference.days
         tahun = selisihHari // 360
@@ -115,7 +116,7 @@ def sortingExpired():
         bulan = selisihHari // 30
         selisihHari = selisihHari % 30
 
-        minggu = selisihHari // 71
+        minggu = selisihHari // 7
         selisihHari = selisihHari % 7
         result =''
         if tahun:
@@ -136,20 +137,27 @@ def sortingExpired():
 def read():
     print("""
     Pilih menu:
-        1. Tampil Data Barang
-        2. Tampil Data Supplier
-        3. Tampil Data Kapasitas Storage
-        4. Tampil Data Pengeluaran Barang
-        5. Tampil Staus Expired Barang
-        6. Back to Menu
+        1. Tampil Semua Data Barang
+        2. Cari Barang Berdasarkan id
+        3. Tampil Data Supplier
+        4. Tampil Data Kapasitas Storage
+        5. Tampil Data Pengeluaran Barang
+        6. Tampil Status Expired Barang
+        7. Back to Menu
     """)
-    inputMenuRead = pypi.inputInt(prompt='Pilih menu (1-6): ', lessThan=7)
 
+    def findBarang():
+        inputId = str(input("Input id barang untuk dicari: "))
+        printFormatList({"header": dataBarang["header"] ,inputId : dataBarang[inputId]})
+    
+    inputMenuRead = pypi.inputInt(prompt='Pilih menu (1-7): ', lessThan=8)
+    
     if inputMenuRead == 1: printFormatTable(dataBarang)
-    elif inputMenuRead == 2: printFormatTable(dataSupplier)
-    elif inputMenuRead == 3: printFormatTable(availableStorage())
-    elif inputMenuRead == 4: printFormatTable(dataPengeluaran)
-    elif inputMenuRead == 5: 
+    elif inputMenuRead == 2: findBarang()
+    elif inputMenuRead == 3: printFormatTable(dataSupplier)
+    elif inputMenuRead == 4: printFormatTable(availableStorage())
+    elif inputMenuRead == 5: printFormatTable(dataPengeluaran)
+    elif inputMenuRead == 6: 
         sortingExpired()
         printFormatTable(dataStatusExpired)
     else: main()
@@ -388,18 +396,16 @@ def main():
         2. Tambah
         3. Ubah
         4. Hapus
+        5. Exit
     """)
 
     fetchData()
-    menu = pypi.inputInt(prompt='Pilih menu (1-4): ', lessThan=5)
-    if menu == 1:
-        read()
-    elif menu == 2:
-        add()
-    elif menu == 3:
-        update()
-    elif menu == 4:
-        delete()
+    menu = pypi.inputInt(prompt='Pilih menu (1-5): ', lessThan=6)
+    if menu == 1: read()
+    elif menu == 2: add()
+    elif menu == 3: update()
+    elif menu == 4: delete()
+    else: sys.exit()
 
 if __name__ == '__main__':
     main()
