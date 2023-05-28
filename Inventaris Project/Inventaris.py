@@ -1,6 +1,6 @@
 import pyinputplus as pypi
 import copy
-import datetime
+from datetime import datetime
 import mysql.connector
 
 koneksi = mysql.connector.connect(
@@ -12,8 +12,9 @@ koneksi = mysql.connector.connect(
 
 dataStorage = {"header":("ID","Capacity")}
 dataSupplier = {"header": ("ID","Nama","Alamat","Kontak")}
-dataBarang = {"header": ("ID", "Nama", "Tgl Beli", "Harga Beli","Date Expired", "Quantity Barang", "Lokasi", "Supplier")}
+dataBarang = {"header": ("ID", "Nama", "Tgl Beli", "Harga Beli","Expired Date", "Quantity Barang", "Lokasi", "Supplier")}
 dataPengeluaran= { "header": ("ID","Id Barang","Kategori","Jml Keluar","Tgl keluar")}
+dataStatusExpired = {"header":("Id Barang","Nama Barang","Expired Date","Status")}
 
 kursor = koneksi.cursor()
 
@@ -87,6 +88,50 @@ def availableStorage(amountQty=0):
 
     return availableStorage
 
+def sortingExpired():
+    date_list = []
+    for key, value in dataBarang.items():
+        if key != "header":
+            date_list.append([key,value[0],value[-4]])
+
+    n = len(date_list)
+
+    for i in range(n - 1):
+        for j in range(0, n - i - 1): 
+            if date_list[j][2] > date_list[j + 1][2]:
+                date_list[j], date_list[j + 1] = date_list[j + 1], date_list[j]
+
+    def calculateExpiredDay(date):
+        today = datetime.today().date()
+        date = datetime.strptime(date, "%Y/%m/%d").date()
+        difference = date - today
+        if difference.days < 1:
+            return "expired"
+
+        selisihHari = difference.days
+        tahun = selisihHari // 360
+        selisihHari = selisihHari % 360
+
+        bulan = selisihHari // 30
+        selisihHari = selisihHari % 30
+
+        minggu = selisihHari // 71
+        selisihHari = selisihHari % 7
+        result =''
+        if tahun:
+            result += f"{tahun} thn "
+        if bulan:
+            result += f"{bulan} bln "
+        if minggu:
+            result += f"{minggu} minggu "
+        if selisihHari:
+            result += f"{selisihHari} hari"
+
+        return result
+    
+    for i,date in enumerate(date_list):
+        date.append(calculateExpiredDay(date[-1]))
+        dataStatusExpired[date[0]] = date[1:]
 
 def read():
     print("""
@@ -95,20 +140,18 @@ def read():
         2. Tampil Data Supplier
         3. Tampil Data Kapasitas Storage
         4. Tampil Data Pengeluaran Barang
-        5. Back to Menu
+        5. Tampil Staus Expired Barang
+        6. Back to Menu
     """)
-    inputMenuRead = pypi.inputInt(prompt='Pilih menu (1-5): ', lessThan=6)
+    inputMenuRead = pypi.inputInt(prompt='Pilih menu (1-6): ', lessThan=7)
 
-    if inputMenuRead == 1:
-        printFormatTable(dataBarang)
-
-    elif inputMenuRead == 2: 
-        printFormatTable(dataSupplier)
-
-    elif inputMenuRead == 3: 
-        printFormatTable(availableStorage())
-    elif inputMenuRead == 4:
-        printFormatTable(dataPengeluaran)
+    if inputMenuRead == 1: printFormatTable(dataBarang)
+    elif inputMenuRead == 2: printFormatTable(dataSupplier)
+    elif inputMenuRead == 3: printFormatTable(availableStorage())
+    elif inputMenuRead == 4: printFormatTable(dataPengeluaran)
+    elif inputMenuRead == 5: 
+        sortingExpired()
+        printFormatTable(dataStatusExpired)
     else: main()
     read()
 
@@ -360,6 +403,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-    

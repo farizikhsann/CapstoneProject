@@ -40,9 +40,9 @@ CREATE TABLE `barang` (
 
 insert  into `barang`(`id`,`nama`,`tgl_beli`,`harga_beli`,`date_expired`,`quantity_barang`,`lokasi`,`supplier`) values 
 ('brg-1','Gula','2020-09-01',1500,'2023-06-15',500,'lok-2','supp-1'),
-('brg-2','Tepung','2020-11-05',2500,'2023-06-25',3500,'lok-2','supp-2'),
+('brg-2','Tepung','2020-11-05',2500,'2023-06-02',3500,'lok-2','supp-2'),
 ('brg-3','Telur','2023-05-25',1100,'2024-05-25',50,'lok-1','supp-1'),
-('brg-4','Mentega','2023-05-27',2100,'2024-05-27',75,'lok-3','supp-2');
+('brg-4','Mentega','2023-05-27',2100,'2023-05-18',75,'lok-3','supp-2');
 
 /*Table structure for table `pengeluaran` */
 
