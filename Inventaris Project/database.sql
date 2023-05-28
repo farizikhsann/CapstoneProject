@@ -42,7 +42,7 @@ insert  into `barang`(`id`,`nama`,`tgl_beli`,`harga_beli`,`date_expired`,`quanti
 ('brg-1','Gula','2020-09-01',1500,'2023-06-15',500,'lok-2','supp-1'),
 ('brg-2','Tepung','2020-11-05',2500,'2023-06-25',3500,'lok-2','supp-2'),
 ('brg-3','Telur','2023-05-25',1100,'2024-05-25',50,'lok-1','supp-1'),
-('brg-4','Mentega','2023-05-27',2100,'2024-05-27',75,'lok-3','supp-3');
+('brg-4','Mentega','2023-05-27',2100,'2024-05-27',75,'lok-3','supp-2');
 
 /*Table structure for table `pengeluaran` */
 
@@ -95,10 +95,7 @@ CREATE TABLE `supplier` (
 
 insert  into `supplier`(`id`,`nama`,`alamat`,`kontak`) values 
 ('supp-1','PT SugarManis','Bandung','012345'),
-('supp-2','PT TepungIndo','Jakarta','01234'),
-('supp-3','supplierbaruuu','bekasixx','3204324'),
-('supp-4','koceaktrss','cikokol','099921'),
-('supp-99','ubah','aceh','3454');
+('supp-2','PT TepungIndo','Jakarta','01234');
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
