@@ -71,7 +71,7 @@ def printFormatTable(data):
     print('-' * line_length)
     print(format_string.format(*cloneData["header"]))
     print('-' * line_length)
-    for keys, values in cloneData.items():
+    for keys, values in cloneData.items(): 
         if keys != "header":
             print(format_string.format(*values))
     print('-' * line_length)
@@ -89,18 +89,7 @@ def availableStorage(amountQty=0):
 
     return availableStorage
 
-def sortingExpired():
-    date_list = []
-    for key, value in dataBarang.items():
-        if key != "header":
-            date_list.append([key,value[0],value[-4]])
-
-    n = len(date_list)
-
-    for i in range(n - 1):
-        for j in range(0, n - i - 1): 
-            if date_list[j][2] > date_list[j + 1][2]:
-                date_list[j], date_list[j + 1] = date_list[j + 1], date_list[j]
+def sortingExpired(date=''):
 
     def calculateExpiredDay(date):
         today = datetime.today().date()
@@ -108,7 +97,6 @@ def sortingExpired():
         difference = date - today
         if difference.days < 1:
             return "| EXPIRED |"
-
         selisihHari = difference.days
         tahun = selisihHari // 360
         selisihHari = selisihHari % 360
@@ -129,7 +117,21 @@ def sortingExpired():
             result += f"{selisihHari} hari"
 
         return result
+        
+    if len(date):
+        return calculateExpiredDay(date)
     
+    date_list = [] #Contains id,name,exp_date
+    for key, value in dataBarang.items():
+        if key != "header":
+            date_list.append([key,value[0],value[-4]])
+
+    n = len(date_list)
+    for i in range(n - 1):
+        for j in range(n - i - 1): 
+            if date_list[j][2] > date_list[j + 1][2]:
+                date_list[j], date_list[j + 1] = date_list[j + 1], date_list[j]
+
     for i,date in enumerate(date_list):
         date.append(calculateExpiredDay(date[-1]))
         dataStatusExpired[date[0]] = date[1:]
@@ -138,26 +140,69 @@ def read():
     print("""
     Pilih menu:
         1. Tampil Semua Data Barang
-        2. Cari Barang Berdasarkan id
-        3. Tampil Data Supplier
-        4. Tampil Data Kapasitas Storage
-        5. Tampil Data Pengeluaran Barang
-        6. Tampil Status Expired Barang
-        7. Back to Menu
+        2. Cari Barang Berdasarkan Nama
+        3. Tampil Semua Data Supplier
+        4. Cari Supplier Berdasarkan Nama
+        5. Tampil Data Kapasitas Storage
+        6. Tampil Data Pengeluaran Barang
+        7. Tampil Status Expired Barang
+        8. Back to Menu
     """)
 
     def findBarang():
-        inputId = str(input("Input id barang untuk dicari: "))
-        printFormatList({"header": dataBarang["header"] ,inputId : dataBarang[inputId]})
+        inputNama = str(input("Input nama barang untuk dicari: ")).lower()
+        
+        listBarang = [key for key,nama in dataBarang.items() if nama[0].lower() == inputNama]
+        if len(listBarang) == 0:
+            print("Data does not exist!")
+            read()
+        printFormatList({"header": dataBarang["header"] ,listBarang[0] : dataBarang[listBarang[0]]})
     
-    inputMenuRead = pypi.inputInt(prompt='Pilih menu (1-7): ', lessThan=8)
+    def findSupplier():
+        inputNama = str(input("Input nama supplier untuk dicari: ")).lower()
+
+        listSupplier = [key for key,nama in dataSupplier.items() if nama[0].lower() == inputNama]
+        if len(listSupplier) == 0:
+            print("Data does not exist!")
+            read()
+        printFormatList({"header": dataSupplier["header"] ,listSupplier[0]: dataSupplier[listSupplier[0]]})
     
-    if inputMenuRead == 1: printFormatTable(dataBarang)
-    elif inputMenuRead == 2: findBarang()
-    elif inputMenuRead == 3: printFormatTable(dataSupplier)
-    elif inputMenuRead == 4: printFormatTable(availableStorage())
-    elif inputMenuRead == 5: printFormatTable(dataPengeluaran)
+    inputMenuRead = pypi.inputInt(prompt='Pilih menu (1-8): ', lessThan=9)
+    
+    if inputMenuRead == 1:
+        if len(dataBarang.keys()) < 2:
+            print("Data was empty, fill the data please!")
+            read() 
+        printFormatTable(dataBarang)
+    elif inputMenuRead == 2: 
+        if len(dataBarang.keys()) < 2:
+            print("Data was empty, fill the data please!")
+            read() 
+        findBarang()
+    elif inputMenuRead == 3: 
+        if len(dataSupplier.keys()) < 2:
+            print("Data was empty, fill the data please!")
+            read() 
+        printFormatTable(dataSupplier)
+    elif inputMenuRead == 4: 
+        if len(dataSupplier.keys()) < 2:
+            print("Data was empty, fill the data please!")
+            read() 
+        findSupplier()
+    elif inputMenuRead == 5: 
+        if len(dataStorage.keys()) < 2:
+            print("There is no storage data")
+            read()
+        printFormatTable(availableStorage())
     elif inputMenuRead == 6: 
+        if len(dataPengeluaran.keys()) < 2:
+            print("There is no outbound goods data")
+            read()
+        printFormatTable(dataPengeluaran)
+    elif inputMenuRead == 7:
+        if len(dataBarang.keys()) < 2:
+            print("Goods data was empty, fill the goods data please!")
+            read()
         sortingExpired()
         printFormatTable(dataStatusExpired)
     else: main()
@@ -182,6 +227,10 @@ def add():
             inputTglBeli = pypi.inputDate(prompt='Input tgl beli: ').strftime("%Y/%m/%d")
             inputHarga = pypi.inputInt(prompt='Input harga barang: ')
             inputExpired = pypi.inputDate(prompt='Input tgl expired barang: ').strftime("%Y/%m/%d")
+            if sortingExpired(inputExpired) == '| EXPIRED |':
+                print("The item was expired! cannot be save!")
+                add()
+
             printFormatTable(availableStorage())
             inputQuantity = pypi.inputInt(prompt='Input quantity barang: ')
 
@@ -201,6 +250,7 @@ def add():
                 if inputCondSupp == "y": 
                     inputSupplier = add_supplier("add_barang")
                 else:
+                    print("Data failed to save due to the supplier not being assigned!")
                     add()
             inputSave =str(input('Apakah data barang ingin disimpan?(y/n) '))
             if inputSave =="y":
