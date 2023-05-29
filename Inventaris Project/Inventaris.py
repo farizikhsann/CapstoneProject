@@ -1,6 +1,6 @@
 import pyinputplus as pypi
 import copy
-from datetime import datetime
+import datetime
 import mysql.connector
 import sys
 
@@ -25,10 +25,12 @@ def fetchData():
             "SELECT b.*, s.nama FROM barang b JOIN supplier s on s.id = b.supplier",
             "SELECT * FROM pengeluaran"]
     
+    #Executing and Fetching
     for query in kueri:
         kursor.execute(query)
         rows = kursor.fetchall()
 
+        #Throw rows to dict and updating row as python format
         for row in rows:
             row = list(row)
             if row[0][:4] == "brg-":
@@ -43,29 +45,34 @@ def fetchData():
                 dataPengeluaran[row[0]] = row
             row.pop(0)
 
+#Print as list form
 def printFormatList(data):
     cloneData = copy.deepcopy(data)
     
+    #Inserting key into value in order to printed key out
     for keys, values in cloneData.items():
         if keys != "header":
             values.insert(0,keys)
 
+    #Printing column then value
     for key, value in cloneData.items():
         if key != "header":
             print("\n".join([f"{cloneData['header'][i]}: {v}" for i, v in enumerate(value)]))
         print()
 
+#Print as table form
 def printFormatTable(data):
     cloneData = copy.deepcopy(data)
 
+    #Inserting key into value in order to printed key out
     for keys, values in cloneData.items():
         if keys != "header":
             values.insert(0, keys)
 
     #Calculation
-    maxWidths = [max(len(str(row[i])) for row in cloneData.values()) for i in range(len(cloneData["header"]))]
-    format_string = ' | '.join(['{{:<{}}}'.format(width) for width in maxWidths])
-    line_length = sum(maxWidths) + 3 * (len(maxWidths) - 1)
+    maxWidths = [max(len(str(row[i])) for row in cloneData.values()) for i in range(len(cloneData["header"]))] #collect each max row widths per column
+    format_string = ' | '.join(['{{:<{}}}'.format(width) for width in maxWidths]) #Create fotmat whitespace length size and joining with separator
+    line_length = sum(maxWidths) + 3 * (len(maxWidths) - 1) #Calculate the sum of the row that generates the maximum row width
 
     #Print the formats
     print('-' * line_length)
@@ -76,7 +83,7 @@ def printFormatTable(data):
             print(format_string.format(*values))
     print('-' * line_length)
 
-
+#Check availability storage capacity by comparing with goods amount
 def availableStorage(amountQty=0):
     cloneData = copy.deepcopy(dataStorage)
     for key, value in dataBarang.items():
@@ -92,8 +99,8 @@ def availableStorage(amountQty=0):
 def sortingExpired(date=''):
 
     def calculateExpiredDay(date):
-        today = datetime.today().date()
-        date = datetime.strptime(date, "%Y/%m/%d").date()
+        today = datetime.date.today()
+        date = datetime.datetime.strptime(date, "%Y/%m/%d").date()
         difference = date - today
         if difference.days < 1:
             return "| EXPIRED |"
