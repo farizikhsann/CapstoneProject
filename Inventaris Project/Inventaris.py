@@ -218,11 +218,14 @@ def add():
 
     def add_barang():
         inputId = str(input("Buat id barang: "))
+        if inputId[:4] != 'brg-':
+                inputId = f'brg-{inputId}'
 
         if inputId in dataBarang.keys():
             print("Data already exist")
-            add()
-        else:     
+            add() 
+            
+        else:
             inputNama = str(input("Input nama barang: "))
             inputTglBeli = pypi.inputDate(prompt='Input tgl beli: ').strftime("%Y/%m/%d")
             inputHarga = pypi.inputInt(prompt='Input harga barang: ')
@@ -246,14 +249,14 @@ def add():
             inputSupplier = str(input("Pilih supplier by ID: "))
 
             if inputSupplier not in dataSupplier.keys():
-                inputCondSupp =str(input('Data supplier tidak ditemukan apakah ingin menambahkan data supplier?(y/n) ')).lower()
-                if inputCondSupp == "y": 
+                inputCondSupp = pypi.inputYesNo(prompt='Data supplier tidak ditemukan apakah ingin menambahkan data supplier?(y/n) ')
+                if inputCondSupp == "yes": 
                     inputSupplier = add_supplier("add_barang")
                 else:
                     print("Data failed to save due to the supplier not being assigned!")
                     add()
-            inputSave =str(input('Apakah data barang ingin disimpan?(y/n) '))
-            if inputSave =="y":
+            inputSave = pypi.inputYesNo(prompt='Apakah data barang ingin disimpan?(y/n) ')
+            if inputSave =="yes":
                 values = [inputId,inputNama,inputTglBeli,inputHarga,inputExpired,inputQuantity,inputLokasi,inputSupplier]
                 #Store to dict
                 dataBarang[inputId] = values[1:]
@@ -269,6 +272,8 @@ def add():
 
     def add_supplier(callingFrom=""):
         inputId = str(input("Buat id supplier: "))
+        if inputId[:5] != 'supp-':
+            inputId = f'brg-{inputId}'
 
         if inputId in dataSupplier.keys():
             print("Data already exist")
@@ -277,9 +282,9 @@ def add():
             inputNama = str(input("Input nama supplier: "))
             inputAlamat = str(input("Input alamat supplier: "))
             inputKontak = str(input("Input kontak supplier: "))
-            inputSave =str(input('Apakah data supplier ingin disimpan?(y/n) '))
+            inputSave =pypi.inputYesNo('Apakah data supplier ingin disimpan?(y/n) ')
 
-            if inputSave == "y":
+            if inputSave == "yes":
                 values = [inputId,inputNama, inputAlamat, inputKontak]
                 dataSupplier[inputId] = values[1:]
                 sql = "INSERT INTO supplier VALUES(%s,%s,%s,%s)"
@@ -316,8 +321,8 @@ def update():
             print("Data would update according the ID")
             printDict= {"header": dataBarang["header"] ,inputId : dataBarang[inputId]}
             printFormatList(printDict)
-            inputConfirm = str(input('Continue update?(y/n) '))
-            if inputConfirm == "y":
+            inputConfirm = pypi.inputYesNo('Continue update?(y/n) ')
+            if inputConfirm == "yes":
                 inputNama = str(input("Ubah nama barang: "))
                 inputTglBeli = pypi.inputDate(prompt='Ubah tgl beli: ').strftime("%Y/%m/%d")
                 inputHarga = pypi.inputInt(prompt='Ubah harga barang: ')
@@ -351,8 +356,8 @@ def update():
             inputAlamat = str(input("Input alamat supplier: "))
             inputKontak = str(input("Input kontak supplier: "))
 
-            inputConfirm = str(input('Continue update?(y/n) '))
-            if inputConfirm == "y":
+            inputConfirm = pypi.inputYesNo('Continue update?(y/n) ')
+            if inputConfirm == "yes":
                 values = [ inputNama, inputAlamat, inputKontak,inputId]
                 dataSupplier[inputId] = values[:-2]
 
@@ -363,8 +368,15 @@ def update():
                 update()
             else: update()
 
-    if inputMenuUbah == 1: update_barang()
-    elif inputMenuUbah == 2: update_supplier()
+    if inputMenuUbah == 1:
+        if len(dataBarang.keys()) < 2:
+            print("Data was empty, fill the data please!")
+            update()
+        update_barang()
+    elif inputMenuUbah == 2: 
+        if len(dataSupplier.keys()) < 2:
+            print("Data was empty, fill the data please!")
+        update_supplier()
     elif  inputMenuUbah == 3: main()
 
 def delete():
@@ -435,8 +447,14 @@ def delete():
             delete()
 
     inputMenuDelete = pypi.inputInt(prompt='Pilih menu (1-3): ', lessThan=4)
-    if inputMenuDelete == 1: delete_barang()
-    elif inputMenuDelete == 2: delete_supplier()
+    if inputMenuDelete == 1: 
+        if len(dataBarang.keys()) < 2:
+            print("Data was empty, fill the data please!")
+        delete_barang()
+    elif inputMenuDelete == 2: 
+        if len(dataSupplier.keys()) < 2:
+            print("Data was empty, fill the data please!")
+        delete_supplier()
     else: main()
 
 def main():
