@@ -45,10 +45,12 @@ Tabel Pengeluaran Barang
 * Tampil Data Kapasitas Storage
 * Tampil Data Pengeluaran Barang
 * Tampil Status Expired Barang
+
 **Add**
 
 * Add Barang
 * Add Supplier
+
 **Update**
 
 * Update Barang
