@@ -236,9 +236,9 @@ def add():
             
         else:
             inputNama = pypi.inputStr("Input nama barang: ",default=' ')
-            inputTglBeli = pypi.inputDate(prompt='Input tgl beli: ').strftime("%Y/%m/%d")
+            inputTglBeli = pypi.inputDate(prompt='Input tgl beli(yyyy/mm/dd): ').strftime("%Y/%m/%d")
             inputHarga = pypi.inputInt(prompt='Input harga barang: ',greaterThan=0)
-            inputExpired = pypi.inputDate(prompt='Input tgl expired barang: ').strftime("%Y/%m/%d")
+            inputExpired = pypi.inputDate(prompt='Input tgl expired barang(yyyy/mm/dd): ').strftime("%Y/%m/%d")
             if sortingExpired(inputExpired) == '| EXPIRED |':
                 print("The item was expired! cannot be save!")
                 add()
@@ -337,9 +337,9 @@ def update():
             inputConfirm = pypi.inputYesNo('Continue update?(y/n) ')
             if inputConfirm == "yes":
                 inputNama = pypi.inputStr(prompt="Ubah nama barang: ")
-                inputTglBeli = pypi.inputDate(prompt='Ubah tgl beli: ').strftime("%Y/%m/%d")
+                inputTglBeli = pypi.inputDate(prompt='Ubah tgl beli(yyyy/mm/dd): ').strftime("%Y/%m/%d")
                 inputHarga = pypi.inputInt(prompt='Ubah harga barang: ',greaterThan=0)
-                inputExpired = pypi.inputDate(prompt='Ubah tgl expired barang: ').strftime("%Y/%m/%d")
+                inputExpired = pypi.inputDate(prompt='Ubah tgl expired barang(yyyy/mm/dd): ').strftime("%Y/%m/%d")
                 inputQuantity = pypi.inputInt(prompt='Ubah quantity barang: ',greaterThan=-1)
                
                 validStorage =  [keys for keys in availableStorage(inputQuantity).keys() if keys != "header"]
