@@ -157,7 +157,7 @@ def read():
     """)
 
     def findBarang():
-        inputNama = str(input("Input nama barang untuk dicari: ")).lower()
+        inputNama = pypi.inputStr(prompt="Input nama barang untuk dicari: ").lower()
         
         listBarang = [key for key,nama in dataBarang.items() if nama[0].lower() == inputNama]
         if len(listBarang) == 0:
@@ -166,7 +166,7 @@ def read():
         printFormatList({"header": dataBarang["header"] ,listBarang[0] : dataBarang[listBarang[0]]})
     
     def findSupplier():
-        inputNama = str(input("Input nama supplier untuk dicari: ")).lower()
+        inputNama = pypi.inputStr(prompt="Input nama supplier untuk dicari: ").lower()
 
         listSupplier = [key for key,nama in dataSupplier.items() if nama[0].lower() == inputNama]
         if len(listSupplier) == 0:
@@ -224,7 +224,7 @@ def add():
     """)
 
     def add_barang():
-        inputId = str(input("Buat id barang: "))
+        inputId = pypi.inputStr("Buat id barang: ")
         if inputId[:4] != 'brg-':
                 inputId = f'brg-{inputId}'
 
@@ -233,16 +233,16 @@ def add():
             add() 
             
         else:
-            inputNama = str(input("Input nama barang: "))
+            inputNama = pypi.inputStr("Input nama barang: ",default=' ')
             inputTglBeli = pypi.inputDate(prompt='Input tgl beli: ').strftime("%Y/%m/%d")
-            inputHarga = pypi.inputInt(prompt='Input harga barang: ')
+            inputHarga = pypi.inputInt(prompt='Input harga barang: ',greaterThan=0)
             inputExpired = pypi.inputDate(prompt='Input tgl expired barang: ').strftime("%Y/%m/%d")
             if sortingExpired(inputExpired) == '| EXPIRED |':
                 print("The item was expired! cannot be save!")
                 add()
 
             printFormatTable(availableStorage())
-            inputQuantity = pypi.inputInt(prompt='Input quantity barang: ')
+            inputQuantity = pypi.inputInt(prompt='Input quantity barang: ',greaterThan=0)
 
             #filtering storage yg kapasitas memenuhi dari qty
             validStorage =  [keys for keys in availableStorage(inputQuantity).keys() if keys != "header"]
@@ -253,7 +253,7 @@ def add():
             printFormatTable(availableStorage(inputQuantity))
             inputLokasi =  pypi.inputChoice(prompt="Pilih id lokasi barang: ",choices= validStorage,blank=True)
             printFormatTable(dataSupplier)
-            inputSupplier = str(input("Pilih supplier by ID: "))
+            inputSupplier = pypi.inputStr(prompt="Pilih supplier by ID: ")
 
             if inputSupplier not in dataSupplier.keys():
                 inputCondSupp = pypi.inputYesNo(prompt='Data supplier tidak ditemukan apakah ingin menambahkan data supplier?(y/n) ')
@@ -278,7 +278,7 @@ def add():
                 add()
 
     def add_supplier(callingFrom=""):
-        inputId = str(input("Buat id supplier: "))
+        inputId = pypi.inputStr(prompt="Buat id supplier: ")
         if inputId[:5] != 'supp-':
             inputId = f'brg-{inputId}'
 
@@ -286,9 +286,9 @@ def add():
             print("Data already exist")
             add()
         else:
-            inputNama = str(input("Input nama supplier: "))
-            inputAlamat = str(input("Input alamat supplier: "))
-            inputKontak = str(input("Input kontak supplier: "))
+            inputNama = pypi.inputStr(prompt="Input nama supplier: ")
+            inputAlamat = pypi.inputStr(prompt="Input alamat supplier: ")
+            inputKontak = pypi.inputStr(prompt="Input kontak supplier: ")
             inputSave =pypi.inputYesNo('Apakah data supplier ingin disimpan?(y/n) ')
 
             if inputSave == "yes":
@@ -330,11 +330,11 @@ def update():
             printFormatList(printDict)
             inputConfirm = pypi.inputYesNo('Continue update?(y/n) ')
             if inputConfirm == "yes":
-                inputNama = str(input("Ubah nama barang: "))
+                inputNama = pypi.inputStr(prompt="Ubah nama barang: ")
                 inputTglBeli = pypi.inputDate(prompt='Ubah tgl beli: ').strftime("%Y/%m/%d")
-                inputHarga = pypi.inputInt(prompt='Ubah harga barang: ')
+                inputHarga = pypi.inputInt(prompt='Ubah harga barang: ',greaterThan=0)
                 inputExpired = pypi.inputDate(prompt='Ubah tgl expired barang: ').strftime("%Y/%m/%d")
-                inputQuantity = pypi.inputInt(prompt='Ubah quantity barang: ')
+                inputQuantity = pypi.inputInt(prompt='Ubah quantity barang: ',greaterThan=-1)
                 printFormatTable(availableStorage(inputQuantity))
                 inputLokasi = pypi.inputChoice(prompt="Pilih lokasi barang: ", choices= list(availableStorage(inputQuantity).keys()))
                 printFormatTable(dataSupplier)
@@ -359,9 +359,9 @@ def update():
             print("The data you are looking for does not exist!")
             update()
         else:
-            inputNama = str(input("Input nama supplier: "))
-            inputAlamat = str(input("Input alamat supplier: "))
-            inputKontak = str(input("Input kontak supplier: "))
+            inputNama = pypi.inputStr(prompt="Input nama supplier: ")
+            inputAlamat = pypi.inputStr(prompt="Input alamat supplier: ")
+            inputKontak = pypi.inputStr(prompt="Input kontak supplier: ")
 
             inputConfirm = pypi.inputYesNo('Continue update?(y/n) ')
             if inputConfirm == "yes":
@@ -420,7 +420,7 @@ def delete():
                     print("Data is successfully deleted!")
             else:
                 inputQtyOut = pypi.inputInt(prompt="Input jumlah barang yg akan dikeluarkan: ",max= dataBarang[inputId][-3])
-                inputKategori = str(input("Kategori pengeluaran barang: "))
+                inputKategori = pypi.inputStr(prompt="Kategori pengeluaran barang: ")
                 inputConfirm = pypi.inputYesNo(f'Barang {dataBarang[inputId][0]} sebanyak {inputQtyOut} dikeluarkan data?(y/n) ')
                 if inputConfirm =="yes":
                     dataBarang[inputId][-3] -= inputQtyOut
