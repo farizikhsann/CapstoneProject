@@ -22,7 +22,7 @@ kursor = koneksi.cursor()
 def fetchData():
     kueri = ["SELECT * FROM storage",
             "SELECT * FROM supplier",
-            "SELECT b.*, s.nama FROM barang b JOIN supplier s on s.id = b.supplier",
+            "SELECT b.* FROM barang b JOIN supplier s on s.id = b.supplier",
             "SELECT * FROM pengeluaran"]
     
     #Executing and Fetching
@@ -35,7 +35,6 @@ def fetchData():
             row = list(row)
             if row[0][:4] == "brg-":
                 row[2], row[4] = row[2].strftime("%Y/%m/%d"), row[4].strftime("%Y/%m/%d")
-                row.pop(-2)
                 dataBarang[row[0]] = row
 
             elif row[0][:5] == "supp-": dataSupplier[row[0]] = row
@@ -68,6 +67,9 @@ def printFormatTable(data):
     for keys, values in cloneData.items():
         if keys != "header":
             values.insert(0, keys)
+            if keys[:4] == "brg-" and values[-1][:5] == "supp-":
+                supplierId = values[-1]
+                values[-1] = dataSupplier[supplierId][0]
 
     #Calculation
     maxWidths = [max(len(str(row[i])) for row in cloneData.values()) for i in range(len(cloneData["header"]))] #collect each max row widths per column
@@ -224,7 +226,7 @@ def add():
     """)
 
     def add_barang():
-        inputId = pypi.inputStr("Buat id barang: ")
+        inputId = pypi.inputStr("Buat id barang: ").lower()
         if inputId[:4] != 'brg-':
                 inputId = f'brg-{inputId}'
 
@@ -281,10 +283,10 @@ def add():
                 add()
 
     def add_supplier(callingFrom=""):
-        inputId = pypi.inputStr(prompt="Buat id supplier: ")
+        inputId = pypi.inputStr(prompt="Buat id supplier: ").lower()
         if inputId[:5] != 'supp-':
             inputId = f'supp-{inputId}'
-
+        
         if inputId in dataSupplier.keys():
             print("Data already exist")
             add()
@@ -322,7 +324,7 @@ def update():
     
     def update_barang():
         printFormatTable(dataBarang)
-        inputId = pypi.inputStr(prompt="Input id barang yg ingin diubah: ",blockRegexes=["header","HEADER"])
+        inputId = pypi.inputStr(prompt="Input id barang yg ingin diubah: ",blockRegexes=["header","HEADER"]).lower()
 
         if inputId not in dataBarang.keys():
             print("The data you are looking for does not exist!")
@@ -331,6 +333,7 @@ def update():
             print("Data would update according the ID")
             printDict= {"header": dataBarang["header"] ,inputId : dataBarang[inputId]}
             printFormatList(printDict)
+
             inputConfirm = pypi.inputYesNo('Continue update?(y/n) ')
             if inputConfirm == "yes":
                 inputNama = pypi.inputStr(prompt="Ubah nama barang: ")
@@ -338,11 +341,20 @@ def update():
                 inputHarga = pypi.inputInt(prompt='Ubah harga barang: ',greaterThan=0)
                 inputExpired = pypi.inputDate(prompt='Ubah tgl expired barang: ').strftime("%Y/%m/%d")
                 inputQuantity = pypi.inputInt(prompt='Ubah quantity barang: ',greaterThan=-1)
+               
+                validStorage =  [keys for keys in availableStorage(inputQuantity).keys() if keys != "header"]
+                if len(validStorage) < 1:
+                    print("Semua kapasitas penyimpanan tidak cukup utk brg ini!")
+                    update()
+
                 printFormatTable(availableStorage(inputQuantity))
                 inputLokasi = pypi.inputChoice(prompt="Pilih lokasi barang: ", choices= list(availableStorage(inputQuantity).keys()))
                 printFormatTable(dataSupplier)
-                inputSupplier = pypi.inputChoice(prompt="Pilih supplier by ID: ", choices= [keys for keys in dataSupplier.keys() if keys != "header"])
-                
+                inputSupplier = pypi.inputChoice(prompt="Pilih supplier by ID: ", choices= [keys for keys in dataSupplier.keys() if keys != "header"],blank=True)
+            else: update()
+
+            inputAsk = pypi.inputYesNo('Update Data Barang?(y/n) ')
+            if inputAsk == "yes":
                 values = [inputNama,inputTglBeli,inputHarga,inputExpired,inputQuantity,inputLokasi,inputSupplier,inputId]
                 dataBarang[inputId] = values[:-2]
                 
@@ -350,23 +362,28 @@ def update():
                 kursor.execute(sql, values)
                 koneksi.commit()
                 print("Data is successfully updated!")
-                update()
-            else:
-                update()
+            update()
     
     def update_supplier():
         printFormatTable(dataSupplier)
-        inputId = pypi.inputStr(prompt="Input id supplier yg ingin diubah: ",blockRegexes=["header","HEADER"])
+        inputId = pypi.inputStr(prompt="Input id supplier yg ingin diubah: ",blockRegexes=["header","HEADER"]).lower()
 
         if inputId not in dataSupplier.keys():
             print("The data you are looking for does not exist!")
             update()
         else:
-            inputNama = pypi.inputStr(prompt="Input nama supplier: ")
-            inputAlamat = pypi.inputStr(prompt="Input alamat supplier: ")
-            inputKontak = pypi.inputInt(prompt="Input kontak supplier: ")
+            print("Data would update according the ID")
+            printDict= {"header": dataSupplier["header"] ,inputId : dataSupplier[inputId]}
+            printFormatList(printDict)
 
             inputConfirm = pypi.inputYesNo('Continue update?(y/n) ')
+            if inputConfirm == "yes":
+                inputNama = pypi.inputStr(prompt="Input nama supplier: ")
+                inputAlamat = pypi.inputStr(prompt="Input alamat supplier: ")
+                inputKontak = pypi.inputInt(prompt="Input kontak supplier: ")
+            else: update()
+
+            inputConfirm = pypi.inputYesNo('Update Data Supplier?(y/n) ')
             if inputConfirm == "yes":
                 values = [ inputNama, inputAlamat, inputKontak,inputId]
                 dataSupplier[inputId] = values[:-2]
@@ -379,7 +396,7 @@ def update():
             else: update()
 
     if inputMenuUbah == 1:
-        if len(dataBarang.keys()) < 2:
+        if len(dataBarang.keys()) < 2 or len(dataSupplier.keys()) < 2:
             print("Data was empty, fill the data please!")
             update()
         update_barang()
@@ -393,58 +410,63 @@ def update():
 def delete():
     print("""
     Pilih menu:
-        1. Delete/Pengeluaran Barang
-        2. Delete Supplier
-        3. Back to Menu
+        1. Delete Barang
+        2. Pengeluaran Barang
+        3. Delete Supplier
+        4. Back to Menu
     """)
 
     def delete_barang():
-
         printFormatTable(dataBarang)
-        inputId = pypi.inputStr(prompt="Pilih id barang yg ingin dihapus/dikeluarkan: ",blockRegexes=["header","HEADER"])
+        inputId = pypi.inputStr(prompt="Pilih id barang yg ingin dihapus/dikeluarkan: ",blockRegexes=["header","HEADER"]).lower()
 
         if inputId not in dataBarang.keys():
             print("The data you are looking for does not exist!")
         else:
             printDict= {"header": dataBarang["header"] ,inputId : dataBarang[inputId]}
             printFormatList(printDict)
-            print("""
-            Pilih menu index:
-                1. Penghapusan Barang
-                2. Pengeluaran Barang
-            """)
-            inputPilih = pypi.inputInt(prompt="Pilih index: ", lessThan=3)
-            if inputPilih == 1:
-                inputConfirm = pypi.inputYesNo('Delete data?(y/n) ')
-                if inputConfirm =="yes":
-                    del dataBarang[inputId]
-                    sql = "DELETE FROM barang WHERE id=%s"
-                    kursor.execute(sql, [inputId])
-                    koneksi.commit()                    
-                    print("Data is successfully deleted!")
-            else:
-                inputQtyOut = pypi.inputInt(prompt="Input jumlah barang yg akan dikeluarkan: ",max= dataBarang[inputId][-3])
-                inputKategori = pypi.inputStr(prompt="Kategori pengeluaran barang: ")
-                inputConfirm = pypi.inputYesNo(f'Barang {dataBarang[inputId][0]} sebanyak {inputQtyOut} dikeluarkan data?(y/n) ')
-                if inputConfirm =="yes":
-                    dataBarang[inputId][-3] -= inputQtyOut
-                    sql = "UPDATE barang set quantity_barang=%s WHERE id=%s"
-                    kursor.execute(sql, [dataBarang[inputId][-3],inputId])
-                    koneksi.commit() 
+            inputConfirm = pypi.inputYesNo('Delete data?(y/n) ')
+            if inputConfirm =="yes":
+                del dataBarang[inputId]
+                sql = "DELETE FROM barang WHERE id=%s"
+                kursor.execute(sql, [inputId])
+                koneksi.commit()                    
+                print("Data is successfully deleted!")
+        delete()
 
-                    key = f"out-{len(dataPengeluaran.keys())+1}"
-                    values = [key,inputId,inputKategori,inputQtyOut,datetime.date.today().strftime("%Y/%m/%d")]
-                    dataPengeluaran[key] = values[1:]
-                    sql = "INSERT INTO pengeluaran VALUES (%s,%s,%s,%s,%s)"
-                    kursor.execute(sql, values)
-                    koneksi.commit()  
-                    print("Data is successfully out!")
+    def pengeluaran_barang():
+        printFormatTable(dataBarang)
+        inputId = pypi.inputStr(prompt="Pilih id barang yg ingin dihapus/dikeluarkan: ",blockRegexes=["header","HEADER"]).lower()
+
+        if inputId not in dataBarang.keys():
+            print("The data you are looking for does not exist!")
+            
+        inputQtyOut = pypi.inputInt(prompt="Input jumlah barang yg akan dikeluarkan: ",max= dataBarang[inputId][-3])
+        inputKategori = pypi.inputStr(prompt="Kategori pengeluaran barang: ")
+        inputConfirm = pypi.inputYesNo(f'Barang {dataBarang[inputId][0]} sebanyak {inputQtyOut} dikeluarkan data?(y/n) ')
+        if inputConfirm =="yes":
+            dataBarang[inputId][-3] -= inputQtyOut
+            sql = "UPDATE barang set quantity_barang=%s WHERE id=%s"
+            kursor.execute(sql, [dataBarang[inputId][-3],inputId])
+            koneksi.commit() 
+
+            key = f"out-{len(dataPengeluaran.keys())+1}"
+            values = [key,inputId,inputKategori,inputQtyOut,datetime.date.today().strftime("%Y/%m/%d")]
+            dataPengeluaran[key] = values[1:]
+            sql = "INSERT INTO pengeluaran VALUES (%s,%s,%s,%s,%s)"
+            kursor.execute(sql, values)
+            koneksi.commit()  
+            print("Data is successfully out!")
         delete()
 
     def delete_supplier():
         printFormatTable(dataSupplier)
-        inputId = pypi.inputStr(prompt="Pilih id supplier yg ingin dihapus: ",blockRegexes=["header","HEADER"])
+        inputId = pypi.inputStr(prompt="Pilih id supplier yg ingin dihapus: ",blockRegexes=["header","HEADER"]).lower()
 
+        listBrgSupp = [supp[-1] for key, supp in dataBarang.items() if key != "header"]
+        if inputId in listBrgSupp:
+            print("Data supplier ini tidak bisa dihapus dikarenakan suppier ini masih berelasi dengan barang!")
+            delete()
         if inputId not in dataSupplier.keys():
             print("The data you are looking for does not exist!")
             delete()
@@ -454,16 +476,25 @@ def delete():
             inputConfirm = pypi.inputYesNo('Delete data?(y/n) ')
             if inputConfirm =="yes":
                 del dataSupplier[inputId]
+
+                sql = "DELETE FROM supplier WHERE id=%s"
+                kursor.execute(sql, [inputId])
+                koneksi.commit()               
                 print("Data is successfully deleted!")
             delete()
 
-    inputMenuDelete = pypi.inputInt(prompt='Pilih menu (1-3): ', lessThan=4)
+    inputMenuDelete = pypi.inputInt(prompt='Pilih menu (1-4): ', lessThan=5)
     if inputMenuDelete == 1: 
         if len(dataBarang.keys()) < 2:
             print("Data was empty, fill the data please!")
             delete()
         delete_barang()
     elif inputMenuDelete == 2: 
+        if len(dataBarang.keys()) < 2:
+            print("Data was empty, fill the data please!")
+            delete()
+        pengeluaran_barang()
+    elif inputMenuDelete == 3: 
         if len(dataSupplier.keys()) < 2:
             print("Data was empty, fill the data please!")
             delete()

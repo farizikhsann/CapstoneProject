@@ -95,7 +95,8 @@ CREATE TABLE `supplier` (
 
 insert  into `supplier`(`id`,`nama`,`alamat`,`kontak`) values 
 ('supp-1','PT SugarManis','Bandung','012345'),
-('supp-2','PT TepungIndo','Jakarta','01234');
+('supp-2','PT TepungIndo','Jakarta','01234'),
+('supp-3','NoRelation','Surabaya','212323');
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
