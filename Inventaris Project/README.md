@@ -55,6 +55,7 @@ Tabel Pengeluaran Barang
 
 * Update Barang
 * Update Supplier
+
 **Delete**
 
 * Delete Barang
